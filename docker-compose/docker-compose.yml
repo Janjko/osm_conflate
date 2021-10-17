@@ -1,0 +1,18 @@
+version: "3"
+services:
+    overpass:
+        container_name: overpass
+        image: wiktorn/overpass-api:0.7.56.4
+        environment:
+            - OVERPASS_META=yes
+            - OVERPASS_MODE=init
+            - OVERPASS_PLANET_URL=https://download.geofabrik.de/europe/croatia-latest.osm.bz2
+    conflator:
+        container_name: conflator
+        build: ..
+        image: conflator
+        volumes:
+            - C:\Users\janko\source\conflate\:/data/
+        environment:
+            - PERIOD=1m
+        command: ["/src/loop.sh"]
