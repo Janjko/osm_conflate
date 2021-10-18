@@ -13,7 +13,9 @@ function sigterm() {
 trap 'sigint' INT
 trap 'sigterm' TERM
 
+mkdir -p /data/current/
+
 while ${run}; do
-  conflate /data/profile.py -o /data/josm.osm
+  conflate /data/profile.py -o /data/josm.osm --changes /data/current/changes.json
   sleep ${PERIOD:-24h}
 done

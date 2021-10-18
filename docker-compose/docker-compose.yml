@@ -7,6 +7,8 @@ services:
             - OVERPASS_META=yes
             - OVERPASS_MODE=init
             - OVERPASS_PLANET_URL=https://download.geofabrik.de/europe/croatia-latest.osm.bz2
+        volumes:
+            - C:\Users\janko\source\conflate\db\:/db
     conflator:
         container_name: conflator
         build: ..
