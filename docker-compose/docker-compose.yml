@@ -7,8 +7,9 @@ services:
             - OVERPASS_META=yes
             - OVERPASS_MODE=init
             - OVERPASS_PLANET_URL=https://download.geofabrik.de/europe/croatia-latest.osm.bz2
+            - OVERPASS_DIFF_URL=https://download.geofabrik.de/europe/croatia-updates
         volumes:
-            - C:\Users\janko\source\conflate\db\:/db
+            - C:\Users\janko\source\overpass\db\:/db
     conflator:
         container_name: conflator
         build: ..
@@ -18,3 +19,11 @@ services:
         environment:
             - PERIOD=1m
         command: ["/src/loop.sh"]
+    nominatim:
+        container_name: nominatim
+        image: mediagis/nominatim:3.7
+        volumes:
+            - C:\Users\janko\source\nominatim\:/var/lib/postgresql/12/main
+        environment:
+            - PBF_URL=https://download.geofabrik.de/europe/croatia-latest.osm.pbf
+            - REPLICATION_URL=https://download.geofabrik.de/europe/croatia-updates
