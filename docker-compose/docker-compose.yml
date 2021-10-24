@@ -19,6 +19,9 @@ services:
         environment:
             - PERIOD=1m
         command: ["/src/loop.sh"]
+        depends_on:
+            - "overpass"
+            - "nominatim"
     nominatim:
         container_name: nominatim
         image: mediagis/nominatim:3.7
