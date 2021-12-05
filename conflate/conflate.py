@@ -79,7 +79,7 @@ def run(profile=None):
                         help='Source file to pass to the profile dataset() function')
     parser.add_argument('-a', '--audit', type=argparse.FileType('r'),
                         help='Conflation validation result as a JSON file')
-    parser.add_argument('-o', '--output', type=argparse.FileType('w'),
+    parser.add_argument('-o', '--output', type=argparse.FileType('w', encoding="utf-8"),
                         help='Output OSM XML file name')
     parser.add_argument('-p', '--param',
                         help='Optional parameter for the profile')
@@ -88,7 +88,7 @@ def run(profile=None):
     parser.add_argument('--osm',
                         help='Instead of querying Overpass API, use this unpacked osm file. ' +
                         'Create one from Overpass data if not found')
-    parser.add_argument('-c', '--changes', type=argparse.FileType('w'),
+    parser.add_argument('-c', '--changes', type=argparse.FileType('w', encoding="utf-8"),
                         help='Write changes as GeoJSON for visualization')
     parser.add_argument('-m', '--check-move', action='store_true',
                         help='Check for moveability of modified modes')

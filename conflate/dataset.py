@@ -161,7 +161,7 @@ def check_dataset_for_duplicates(profile, dataset, print_all=False):
                 tags[k] = v
             elif tags[k] != '---' and tags[k] != v:
                 tags[k] = '---'
-
+    return
     # And then for near-duplicate points with similar tags
     uncond_distance = profile.get('duplicate_distance', 1)
     diff_tags = [k for k in tags if tags[k] == '---']

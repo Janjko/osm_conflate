@@ -5,7 +5,7 @@ from .data import OSMPoint
 from . import etree
 
 
-OVERPASS_SERVER = 'http://overpass/api/'
+OVERPASS_SERVER = 'http://overpass-turbo.eu/api/'
 ALT_OVERPASS_SERVER = 'https://overpass.kumi.systems/api/'
 OSM_API_SERVER = 'https://api.openstreetmap.org/api/0.6/'
 BBOX_PADDING = 0.003  # in degrees, ~330 m default
