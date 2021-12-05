@@ -5,9 +5,9 @@ services:
         build: ..
         image: conflator
         volumes:
-            - ~\source\garden\conflate\:/data/
-            - ~\source\garden\jsons\:/jsons/
-            - ~\source\garden\rss\:/rss/
+            - ~/garden/conflate/:/data/
+            - ~/garden/jsons/:/jsons/
+            - ~/garden/rss/:/rss/
         environment:
             - PERIOD=5m
         depends_on:
@@ -21,14 +21,14 @@ services:
             - OVERPASS_PLANET_URL=https://download.geofabrik.de/europe/croatia-latest.osm.bz2
 #            - OVERPASS_DIFF_URL=https://download.geofabrik.de/europe/croatia-updates/
         volumes:
-            - ~\source\garden\overpass\:/db
+            - ~/garden/overpass/:/db
         ports:
           - "8000:80"
     nginx:
         container_name: nginx
         image: nginx
         volumes:
-            - ~\source\garden\rss\:/usr/share/nginx/html/rss/
+            - ~/garden/rss/:/usr/share/nginx/html/rss/
         ports:
           - "8080:80"
 
