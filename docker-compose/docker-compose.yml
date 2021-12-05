@@ -12,7 +12,6 @@ services:
             - PERIOD=5m
         depends_on:
             - "overpass"
-            - "nominatim"
     overpass:
         container_name: overpass-turbo.eu
         image: wiktorn/overpass-api:0.7.56.4
