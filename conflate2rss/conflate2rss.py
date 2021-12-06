@@ -57,6 +57,12 @@ options = parser.parse_args()
 
 if not os.path.isfile(options.inspected):
     if os.path.isfile(options.new):
+        try:
+            with open(options.new, 'r') as json_file:
+                try_new = json.load(json_file)
+        except:
+            os.remove(options.new)
+            sys.exit()
         copyfile( options.new, options.inspected )
     sys.exit()
 
