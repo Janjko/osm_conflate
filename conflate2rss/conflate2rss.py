@@ -27,14 +27,6 @@ ELEMENT_REF = 'element_ref'
 OSM_ID = 'osm_id'
 PASS_ID = 'pass_id'
 
-fg = FeedGenerator()
-fg.id('http://gist.github.com/')
-fg.title('Some Testfeed')
-fg.author({'name': 'Janko Mihelić'})
-fg.subtitle('This is a cool feed!')
-fg.link(href='http://gist.github.com/', rel='self')
-fg.language('en')
-
 # Dictionary that holds the raw rss data, from which the rss is created
 rss_raw = []
 
@@ -49,11 +41,25 @@ parser.add_argument('-i', '--inspected', help='Output OSM XML file name path')
 parser.add_argument('-r', '--rss', type=argparse.FileType('w'), help='RSS XML file path')
 parser.add_argument('-w', '--raw', help='Raw RSS file path')
 parser.add_argument('-p', '--past', help='Folder for past changes')
+parser.add_argument('-u', '--rssurl', help='Url for rss')
+parser.add_argument('-a', '--rssauthor', help='Author of rss')
+parser.add_argument('-l', '--rsslanguage', help='ISO language code of rss (en)')
 #options = parser.parse_args(["-n", "C:\\Users\\Janko\\source\\garden\\jsons\\current\\changes.json", "-i",
 #                           "C:\\Users\\Janko\\source\\garden\\jsons\\inspected\\changes.json", "-r", "C:\\Users\\Janko\\source\\garden\\rss\\rss.xml",
 #                           "-p", "C:\\Users\\Janko\\source\\garden\\jsons\\history", "-w", "C:\\Users\\Janko\\source\\garden\\rss\\rss.json"])
 
 options = parser.parse_args()
+
+fg = FeedGenerator()
+fg.id(options.rssurl)
+fg.title('Garden feed')
+fg.author({'name': options.rssauthor})
+fg.subtitle('A feed of changes on the OpenStreetMap database')
+fg.link(href=options.rssurl, rel='self')
+if not options.rsslanguage:
+    fg.language('en')
+else:
+    fg.language(options.rsslanguage)
 
 if not os.path.isfile(options.inspected):
     if os.path.isfile(options.new):
