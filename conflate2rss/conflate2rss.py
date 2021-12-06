@@ -57,12 +57,6 @@ options = parser.parse_args()
 
 if not os.path.isfile(options.inspected):
     if os.path.isfile(options.new):
-        try:
-            with open(options.new, 'r') as json_file:
-                try_new = json.load(json_file)
-        except:
-            os.remove(options.new)
-            sys.exit()
         copyfile( options.new, options.inspected )
     sys.exit()
 
@@ -82,10 +76,20 @@ except IOError:
         json.dump(rss_raw, json_file)
 
 with open(options.new, encoding='utf-8') as new_json_file:
-    newJson = json.load(new_json_file)
+    try:
+        newJson = json.load(new_json_file)
+    except:
+        logging.error('New file is in a wrong format.')
+        os.remove(options.new)
+        sys.exit()
 
 with open (options.inspected, encoding='utf-8') as old_json_file:
-    oldJson = json.load(old_json_file)
+    try:
+        oldJson = json.load(old_json_file)
+    except:
+        logging.error('Old file is in a wrong format.')
+        os.remove(options.inspected)
+        sys.exit()
 
 for old_element in oldJson['features']:
     new_matches = list(filter(lambda new_match: (
