@@ -9,26 +9,28 @@ services:
             - ~/garden/jsons/:/jsons/
             - ~/garden/rss/:/rss/
         environment:
-            - PERIOD=5m
-        depends_on:
-            - "overpass"
-    overpass:
-        container_name: overpass-turbo.eu
-        image: wiktorn/overpass-api:0.7.56.4
-        environment:
-            - OVERPASS_META=yes
-            - OVERPASS_MODE=init
-            - OVERPASS_PLANET_URL=https://download.geofabrik.de/europe/croatia-latest.osm.bz2
+            - PERIOD=1h
+#        depends_on:
+#            - "overpass"
+#    overpass:
+#        container_name: overpass-turbo.eu
+#        hostname: overpass-turbo.eu
+#        image: wiktorn/overpass-api:0.7.56.4
+#        environment:
+#            - OVERPASS_META=yes
+#            - OVERPASS_MODE=init
+#            - OVERPASS_PLANET_URL=https://download.geofabrik.de/europe/croatia-latest.osm.bz2
 #            - OVERPASS_DIFF_URL=https://download.geofabrik.de/europe/croatia-updates/
-        volumes:
-            - ~/garden/overpass/:/db
-        ports:
-          - "8000:80"
+#        volumes:
+#            - ~/garden/overpass/:/db
     nginx:
         container_name: nginx
         image: nginx
         volumes:
             - ~/garden/rss/:/usr/share/nginx/html/rss/
+            - ~/garden/jsons/history/:/usr/share/nginx/html/history/
+            - ~/garden/jsons/inspected/:/usr/share/nginx/html/inspected/
+            - ~/garden/jsons/current/:/usr/share/nginx/html/current/
         ports:
           - "8080:80"
 

@@ -26,6 +26,8 @@ CHANGE_STATUS = 'change_status'
 ELEMENT_REF = 'element_ref'
 OSM_ID = 'osm_id'
 PASS_ID = 'pass_id'
+CREATE_ELEMENTS = 'create_elements'
+MODIFY_ELEMENTS = 'modify_elements'
 
 # Dictionary that holds the raw rss data, from which the rss is created
 rss_raw = []
@@ -97,6 +99,14 @@ with open (options.inspected, encoding='utf-8') as old_json_file:
         os.remove(options.inspected)
         sys.exit()
 
+elements_to_create=0
+elements_to_modify=0
+for new_element in newJson['features']:
+    if new_element['properties']['action'] == 'create':
+        elements_to_create += 1
+    if new_element['properties']['action'] == 'modify':
+        elements_to_modify += 1
+
 for old_element in oldJson['features']:
     new_matches = list(filter(lambda new_match: (
         new_match['properties']['ref_id'] == old_element['properties']['ref_id']), newJson['features']))
@@ -104,55 +114,59 @@ for old_element in oldJson['features']:
         if old_element['properties']['action'] == 'create':
             rss_raw.append({CHANGE_STATUS: change_status.CREATE_NONE,
                                 ELEMENT_REF: old_element['properties']['ref_id'],
-                                PASS_ID: pass_id})
+                                PASS_ID: pass_id, CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify})
         if old_element['properties']['action'] == 'modify':
             rss_raw.append({CHANGE_STATUS: change_status.MODIFY_NONE,
                                 ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id'],
-                                PASS_ID: pass_id})
+                                PASS_ID: pass_id, CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify})
 
     for new_matched_element in new_matches:
         if old_element['properties']['action'] == 'create' and new_matched_element['properties']['action'] == 'modify':
             rss_raw.append({CHANGE_STATUS: change_status.CREATE_MODIFY,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id'], PASS_ID: pass_id})
+                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id'], PASS_ID: pass_id,
+                                CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify})
 
         if old_element['properties']['action'] == 'modify' and new_matched_element['properties']['action'] == 'create':
             rss_raw.append({CHANGE_STATUS: change_status.MODIFY_CREATE,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id'], PASS_ID: pass_id})
+                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id'], PASS_ID: pass_id,
+                                CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify})
 
 for new_element in newJson['features']: #Ako u starom setu podataka nije bilo ovog upisa
     if not any(x['properties']['ref_id'] == new_element['properties']['ref_id'] for x in oldJson['features']):
         if new_element['properties']['action'] == 'create':
             rss_raw.append({CHANGE_STATUS: change_status.NONE_CREATE,
-                           ELEMENT_REF: new_element['properties']['ref_id'], PASS_ID: pass_id})
+                           ELEMENT_REF: new_element['properties']['ref_id'], PASS_ID: pass_id,
+                           CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify})
         if new_element['properties']['action'] == 'modify':
             rss_raw.append({CHANGE_STATUS: change_status.NONE_MODIFY,
-                           ELEMENT_REF: new_element['properties']['ref_id'], OSM_ID: new_element['properties']['osm_id'], PASS_ID: pass_id})
+                           ELEMENT_REF: new_element['properties']['ref_id'], OSM_ID: new_element['properties']['osm_id'], PASS_ID: pass_id,
+                           CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify})
 
 
 with open(options.raw, 'w+') as fp:
     json.dump(rss_raw, fp)
 
 for entry in rss_raw:
+    try:
+        missing_elements='Nedostaje '+str(entry[CREATE_ELEMENTS])+' elemenata, i treba ih popraviti '+str(entry[MODIFY_ELEMENTS])+'.'
+    except KeyError:
+        missing_elements=''
     fe = fg.add_entry()
     if entry[CHANGE_STATUS] == change_status.CREATE_NONE or entry[CHANGE_STATUS] == change_status.MODIFY_NONE:
         fe.title("Element ispravno ucrtan.")
-        fe.description('Ispravno ucrtan element ' +
-                       old_element['properties']['ref_id'])
+        fe.description('Ispravno ucrtan element ' + entry[ELEMENT_REF]+'. '+missing_elements)
         fe.id(entry[PASS_ID])
     if entry[CHANGE_STATUS] == change_status.NONE_CREATE or entry[CHANGE_STATUS] == change_status.MODIFY_CREATE:
         fe.title("Element obrisan!")
-        fe.description('Element ' +
-                       old_element['properties']['ref_id'] + ' obrisan, ili je izgubio osnovne tagove.')
+        fe.description('Element ' + entry[ELEMENT_REF] + ' obrisan, ili je izgubio osnovne tagove.'+'. '+missing_elements)
         fe.id(entry[PASS_ID])
     if entry[CHANGE_STATUS] == change_status.NONE_MODIFY:
         fe.title("Elementu pokvareni tagovi.")
-        fe.description('Elementu ' +
-                       old_element['properties']['ref_id'] + ' pokvareni tagovi.')
+        fe.description('Elementu ' + entry[ELEMENT_REF] + ' pokvareni tagovi.'+'. '+missing_elements)
         fe.id(entry[PASS_ID])
     if entry[CHANGE_STATUS] == change_status.CREATE_MODIFY:
         fe.title("Element ucrtan, ali sa lošim tagovima.")
-        fe.description('Element ' +
-                       old_element['properties']['ref_id'] + ' ucrtan, ali sa lošim tagovima.')
+        fe.description('Element ' + entry[ELEMENT_REF] + ' ucrtan, ali sa lošim tagovima.'+'. '+missing_elements)
         fe.id(entry[PASS_ID])
 
 fg.rss_file(options.rss.name)
