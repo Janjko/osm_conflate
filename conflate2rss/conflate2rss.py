@@ -40,12 +40,13 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('-n', '--new', help='New file path')
 parser.add_argument('-i', '--inspected', help='Output OSM XML file name path')
-parser.add_argument('-r', '--rss', type=argparse.FileType('w'), help='RSS XML file path')
+parser.add_argument('-r', '--rss', help='RSS XML file path')
 parser.add_argument('-w', '--raw', help='Raw RSS file path')
 parser.add_argument('-p', '--past', help='Folder for past changes')
 parser.add_argument('-u', '--rssurl', help='Url for rss')
 parser.add_argument('-a', '--rssauthor', help='Author of rss')
 parser.add_argument('-l', '--rsslanguage', help='ISO language code of rss (en)')
+parser.add_argument('-m', '--number-of-entries', help='Max number of RSS entries')
 
 options = parser.parse_args()
 
@@ -149,7 +150,7 @@ if len(rss_entry[ELEMENTS]) > 0:
         json.dump(rss_raw, fp)
 
 
-    for entry in rss_raw:
+    for entry in rss_raw[-options.number-of-entries:]:
         fe = fg.add_entry()
         fe.title("Događaji sa školama ")
         fe.id(entry[PASS_ID])
@@ -169,8 +170,7 @@ if len(rss_entry[ELEMENTS]) > 0:
                 description.append('Element ' + element[ELEMENT_REF] + ' ucrtan, ali sa lošim tagovima.')
         fe.description(' '.join(description))
 
-    fg.rss_file(options.rss.name)
+    fg.rss_file(options.rss)
 
 os.rename( options.inspected, os.path.join( options.past,'inspected_'+pass_id+'.json' ) )
 os.rename( options.new, options.inspected )
-
