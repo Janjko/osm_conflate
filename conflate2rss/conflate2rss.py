@@ -46,7 +46,7 @@ parser.add_argument('-p', '--past', help='Folder for past changes')
 parser.add_argument('-u', '--rssurl', help='Url for rss')
 parser.add_argument('-a', '--rssauthor', help='Author of rss')
 parser.add_argument('-l', '--rsslanguage', help='ISO language code of rss (en)')
-parser.add_argument('-m', '--number-of-entries', help='Max number of RSS entries')
+parser.add_argument('-m', '--number_of_entries', help='Max number of RSS entries')
 
 options = parser.parse_args()
 
@@ -150,7 +150,7 @@ if len(rss_entry[ELEMENTS]) > 0:
         json.dump(rss_raw, fp)
 
 
-    for entry in rss_raw[-options.number-of-entries:]:
+    for entry in rss_raw[-int(options.number_of_entries):]:
         fe = fg.add_entry()
         fe.title("Događaji sa školama ")
         fe.id(entry[PASS_ID])
