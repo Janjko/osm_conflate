@@ -115,6 +115,7 @@ class OsmConflator:
                 'update': '#0000ee',  # changing tags on an existing feature
                 'retag':  '#660000',  # cannot delete unmatched feature, changing tags
                 'move':   '#110055',  # moving an existing node
+                'created':'#ffffff',  # feature already created
             }
             marker_action = None
             geometry = {'type': 'Point', 'coordinates': [after.lon, after.lat]}
@@ -123,9 +124,9 @@ class OsmConflator:
                 'osm_id': after.osm_id,
                 'action': after.action
             }
-            if after.action in ('create', 'delete'):
+            if after.action in ('create', 'delete', None):
                 # Red if deleted, green if added
-                marker_action = after.action
+                marker_action = after.action if after.action is not None else 'created'
                 for k, v in after.tags.items():
                     props['tags.{}'.format(k)] = v
                 if ref:
@@ -225,11 +226,11 @@ class OsmConflator:
         else:
             p.action = 'delete'
 
-        if p.action is not None:
-            change = format_change(p0, p, sp)
-            if change is not None:
-                self.matched.append(p)
-                self.changes.append(change)
+        #if p.action is not None:
+        change = format_change(p0, p, sp)
+        if change is not None:
+            self.matched.append(p)
+            self.changes.append(change)
 
     def match_dataset_points_smart(self):
         """Smart matching for dataset <-> OSM points.

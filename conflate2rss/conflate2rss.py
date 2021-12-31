@@ -22,6 +22,10 @@ class change_status(str, Enum):
     MODIFY_CREATE = 'MODIFY_CREATE'
     NONE_CREATE = 'NONE_CREATE'
     NONE_MODIFY = 'NONE_MODIFY'
+    CREATE_CREATED = 'CREATE_CREATED'
+    MODIFY_CREATED = 'MODIFY_CREATED'
+    CREATED_CREATE = 'CREATED_CREATE'
+    CREATED_MODIFY = 'CREATED_MODIFY'
 
 
 CHANGE_STATUS = 'change_status'
@@ -91,6 +95,7 @@ with open (options.inspected, encoding='utf-8') as old_json_file:
         os.remove(options.inspected)
         sys.exit()
 
+# Brojalica za ukupni broj nedostajućih
 elements_to_create=0
 elements_to_modify=0
 for new_element in newJson['features']:
@@ -120,6 +125,22 @@ for old_element in oldJson['features']:
         if old_element['properties']['action'] == 'modify' and new_matched_element['properties']['action'] == 'create':
             rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.MODIFY_CREATE,
                                 ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id']})
+
+        if old_element['properties']['action'] == 'create' and new_matched_element['properties']['action'] is None:
+            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.CREATE_CREATED,
+                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id']})
+
+        if old_element['properties']['action'] == 'modify' and new_matched_element['properties']['action'] is None:
+            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.MODIFY_CREATED,
+                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id']})
+
+        if old_element['properties']['action'] is None and new_matched_element['properties']['action'] == 'create':
+            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.CREATED_CREATE,
+                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id']})
+
+        if old_element['properties']['action'] is None and new_matched_element['properties']['action'] == 'modify':
+            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.CREATED_MODIFY,
+                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id']})
 
 for new_element in newJson['features']: #Ako u starom setu podataka nije bilo ovog upisa
     if not any(x['properties']['ref_id'] == new_element['properties']['ref_id'] for x in oldJson['features']):
@@ -160,14 +181,16 @@ if len(rss_entry[ELEMENTS]) > 0:
             missing_elements=''
         description = [missing_elements]
         for element in entry[ELEMENTS]:
-            if element[CHANGE_STATUS] == change_status.CREATE_NONE or element[CHANGE_STATUS] == change_status.MODIFY_NONE:
+            if element[CHANGE_STATUS] in [change_status.CREATE_CREATED, change_status.MODIFY_CREATED]:
                 description.append('Element ' + element[ELEMENT_REF]+' ispravno ucrtan.')
-            if element[CHANGE_STATUS] == change_status.NONE_CREATE or element[CHANGE_STATUS] == change_status.MODIFY_CREATE:
+            if element[CHANGE_STATUS] in [change_status.CREATED_CREATE, change_status.MODIFY_CREATE]:
                 description.append('Element ' + element[ELEMENT_REF] + ' obrisan, ili je izgubio osnovne tagove.')
-            if element[CHANGE_STATUS] == change_status.NONE_MODIFY:
+            if element[CHANGE_STATUS] == change_status.CREATED_MODIFY:
                 description.append('Elementu ' + element[ELEMENT_REF] + ' pokvareni tagovi.')
-            if element[CHANGE_STATUS] == change_status.CREATE_MODIFY:
+            if element[CHANGE_STATUS] in [change_status.CREATE_MODIFY, change_status.NONE_MODIFY]:
                 description.append('Element ' + element[ELEMENT_REF] + ' ucrtan, ali sa lošim tagovima.')
+            if element[CHANGE_STATUS] == change_status.NONE_CREATE:
+                description.append('Element ' + element[ELEMENT_REF] + ' dodan u ulazni dataset.')
         fe.description(' '.join(description))
 
     fg.rss_file(options.rss)
