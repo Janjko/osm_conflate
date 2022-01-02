@@ -319,8 +319,7 @@ class OsmDownloader:
 
         # For calculating weight of OSM objects
         weight_fn = self.profile.get_raw('weight')
-        osmdata = {}
-
+        osmdata = {'osm_base' : xml.find('meta').get('osm_base'), 'data':{}}
         for el in xml:
             tags = {}
             for tag in el.findall('tag'):
@@ -374,7 +373,7 @@ class OsmDownloader:
                             pt.dist_offset = weight
                         else:
                             pt.dist_offset = weight * self.profile.max_distance
-                osmdata[pt.id] = pt
+                osmdata['data'][pt.id] = pt
         return osmdata
 
 

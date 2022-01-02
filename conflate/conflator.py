@@ -172,7 +172,7 @@ class OsmConflator:
                     props['region'] = region
             return {'type': 'Feature', 'geometry': geometry, 'properties': props}
 
-        p = self.osmdata.pop(osmdata_key, None)
+        p = self.osmdata['data'].pop(osmdata_key, None)
         p0 = None if p is None else p.copy()
         sp = self.dataset.pop(dataset_key, None)
         audit = self.audit.get(sp.id if sp else '{}{}'.format(p.osm_type, p.osm_id), {})
@@ -257,9 +257,9 @@ class OsmConflator:
                        for n in nearest if point.category in n[0].data.categories]
             return sorted(nearest, key=lambda kv: kv[1])[0]
 
-        if not self.osmdata:
+        if not self.osmdata['data']:
             return
-        osm_kd = kdtree.create(list(self.osmdata.values()))
+        osm_kd = kdtree.create(list(self.osmdata['data'].values()))
         count_matched = 0
 
         # Process overridden features first
@@ -269,8 +269,8 @@ class OsmConflator:
                 continue
             found = None
             if len(osm_find) > 2 and osm_find[0] in 'nwr' and osm_find[1].isdigit():
-                if osm_find in self.osmdata:
-                    found = self.osmdata[osm_find]
+                if osm_find in self.osmdata['data']:
+                    found = self.osmdata['data'][osm_find]
             # Search nearest 100 points
             nearest = osm_kd.search_knn(self.dataset[override], 100)
             if nearest:
@@ -319,7 +319,7 @@ class OsmConflator:
         if self.ref is not None or callable(find_ref):
             # First match all objects with ref:whatever tag set
             count_ref = 0
-            for k, p in list(self.osmdata.items()):
+            for k, p in list(self.osmdata['data'].items()):
                 ref = None
                 if self.ref and self.ref in p.tags:
                     ref = p.tags[self.ref]
@@ -378,12 +378,12 @@ class OsmConflator:
             self.register_match(k, None)
 
         # And finally delete some or all of the remaining osm objects
-        if len(self.osmdata) > 0:
+        if len(self.osmdata['data']) > 0:
             count_deleted = 0
             count_retagged = 0
             delete_unmatched = self.profile.get('delete_unmatched', False)
             retag = self.profile.get('tag_unmatched')
-            for k, p in list(self.osmdata.items()):
+            for k, p in list(self.osmdata['data'].items()):
                 ref = None
                 if self.ref and self.ref in p.tags:
                     ref = p.tags[self.ref]
@@ -406,7 +406,7 @@ class OsmConflator:
     def backup_osm(self):
         """Writes OSM data as-is."""
         osm = etree.Element('osm', version='0.6', generator=TITLE)
-        for osmel in self.osmdata.values():
+        for osmel in self.osmdata['data'].values():
             el = osmel.to_xml()
             if osmel.osm_type != 'node':
                 etree.SubElement(el, 'center', lat=str(osmel.lat), lon=str(osmel.lon))

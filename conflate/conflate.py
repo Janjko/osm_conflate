@@ -161,10 +161,10 @@ def run(profile=None):
             conflator.parse_osm(f)
     else:
         conflator.download_osm()
-        if len(conflator.osmdata) > 0 and options.osm:
+        if len(conflator.osmdata['data']) > 0 and options.osm:
             with open(options.osm, 'w') as f:
                 f.write(conflator.backup_osm())
-    logging.info('Downloaded %s objects from OSM', len(conflator.osmdata))
+    logging.info('Downloaded %s objects from OSM', len(conflator.osmdata['data']))
 
     conflator.match()
 
@@ -175,7 +175,7 @@ def run(profile=None):
     if options.changes:
         if options.check_move:
             conflator.check_moveability()
-        fc = {'type': 'FeatureCollection', 'features': conflator.changes}
+        fc = {'type': 'FeatureCollection', 'osm_base':conflator.osmdata['osm_base'], 'features': conflator.changes}
         json.dump(fc, options.changes, ensure_ascii=False, sort_keys=True, indent=1)
 
     if options.list:
