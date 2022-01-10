@@ -26,6 +26,7 @@ class change_status(str, Enum):
     MODIFY_CREATED = 'MODIFY_CREATED'
     CREATED_CREATE = 'CREATED_CREATE'
     CREATED_MODIFY = 'CREATED_MODIFY'
+    DELETE_NONE = 'DELETE_NONE'
 
 
 CHANGE_STATUS = 'change_status'
@@ -54,6 +55,7 @@ parser.add_argument('-u', '--rssurl', help='Url for rss')
 parser.add_argument('-a', '--rssauthor', help='Author of rss')
 parser.add_argument('-l', '--rsslanguage', help='ISO language code of rss (en)')
 parser.add_argument('-m', '--number_of_entries', help='Max number of RSS entries')
+parser.add_argument('-t', '--title', help='Title of the RSS entries')
 
 options = parser.parse_args()
 
@@ -119,6 +121,9 @@ for old_element in oldJson['features']:
         if old_element['properties']['action'] == 'modify':
             rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.MODIFY_NONE,
                                 ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id'], OSM_TYPE: old_element['properties']['osm_type']})
+        if old_element['properties']['action'] == 'delete':
+            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.DELETE_NONE,
+                                OSM_ID: old_element['properties']['osm_id'], OSM_TYPE: old_element['properties']['osm_type']})
 
     for new_matched_element in new_matches:
         if old_element['properties']['action'] == 'create' and new_matched_element['properties']['action'] == 'modify':
@@ -176,13 +181,13 @@ if len(rss_entry[ELEMENTS]) > 0:
 
     for entry in rss_raw[-int(options.number_of_entries):]:
         fe = fg.add_entry()
-        fe.title("Događaji sa školama ")
+        fe.title(options.title)
         fe.id(entry[PASS_ID])
         try:
             missing_elements='Nedostaje '+str(entry[CREATE_ELEMENTS])+' elemenata, i treba ih popraviti '+str(entry[MODIFY_ELEMENTS])+'.'
         except KeyError:
             missing_elements=''
-        description = [missing_elements]
+        description = []
         for element in entry[ELEMENTS]:
             link_string = '<a href="' + OSM_URL + element[OSM_TYPE] + '/' + str(element[OSM_ID])+ '">' + element[ELEMENT_REF] + '</a>'
             if element[CHANGE_STATUS] in [change_status.CREATE_CREATED, change_status.MODIFY_CREATED]:
@@ -195,6 +200,7 @@ if len(rss_entry[ELEMENTS]) > 0:
                 description.append('Element ' + link_string + ' ucrtan, ali sa lošim tagovima.')
             if element[CHANGE_STATUS] == change_status.NONE_CREATE:
                 description.append('Element ' + link_string + ' dodan u ulazni dataset.')
+            description.append(missing_elements)
         fe.description(' '.join(description))
 
     fg.rss_file(options.rss)
