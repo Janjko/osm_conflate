@@ -22,10 +22,13 @@ mkdir -p /jsons/poste/inspected/
 mkdir -p /jsons/poste/history/
 
 while ${run}; do
-  conflate /data/profile.py -o /data/josm.osm --changes /jsons/current/changes.json --list_duplicates
-  python3 conflate2rss/conflate2rss.py -n /jsons/current/changes.json -i /jsons/inspected/changes.json -r /rss/rss.xml -w /rss/raw_rss.json -p /jsons/history/ --rssurl http://46.101.158.129:8080/rss/rss.xml --rssauthor Janjko --rsslanguage hr --number_of_entries 10 --title Škole
-  sleep ${PERIOD:-24h}
-  conflate /data/poste.py -o /data/josmposte.osm --changes /jsons/poste/current/changes.json --list_duplicates
-  python3 conflate2rss/conflate2rss.py -n /jsons/poste/current/changes.json -i /jsons/poste/inspected/changes.json -r /rss/rss.xml -w /rss/raw_rss.json -p /jsons/poste/history/ --rssurl http://46.101.158.129:8080/rss/rss.xml --rssauthor Janjko --rsslanguage hr --number_of_entries 10 --title Pošte
-  sleep ${PERIOD:-24h}
+  for i in *.py; do
+    [ -f "$i" ] || break
+	filename=$(i -- "$fullfile")
+	echo  $filename
+    conflate $filename -o /data/josm.osm --changes /jsons/"${filename%.*}"/current/changes.json --list_duplicates
+	python3 conflate2rss/conflate2rss.py -n /jsons/"${filename%.*}"/current/changes.json -i /jsons/"${filename%.*}"/inspected/changes.json -r /rss/"${filename%.*}"/rss.xml -w /rss/"${filename%.*}"/raw_rss.json -p /jsons/"${filename%.*}"/history/ --rssurl http://46.101.158.129:8080/rss/"${filename%.*}"/rss.xml --rssauthor Janjko --rsslanguage hr --number_of_entries 10 --title /"${filename%.*}"
+	sleep ${PERIOD:-24h}
+  done
+
 done
