@@ -22,7 +22,7 @@ mkdir -p /jsons/poste/inspected/
 mkdir -p /jsons/poste/history/
 
 while ${run}; do
-  for i in *.py; do
+  for i in /data/*.py; do
     [ -f "$i" ] || break
 	filename=$(basename -- "$i")
 	echo  $filename
