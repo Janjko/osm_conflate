@@ -109,6 +109,15 @@ for new_element in newJson['features']:
     if new_element['properties']['action'] == 'modify':
         elements_to_modify += 1
 
+
+for old_element in oldJson['features']:
+    if 'ref_id' not in old_element['properties']:
+        logging.error('Stari element https://openstreetmap.org/' + old_element['properties']['osm_type'] + '/' + str(old_element['properties']['osm_id']) + ' nema ref.')
+
+for new_element in newJson['features']:
+    if 'ref_id' not in new_element['properties']:
+        logging.error('Novi element https://openstreetmap.org/' + new_element['properties']['osm_type'] + '/' + str(new_element['properties']['osm_id']) + ' nema ref.')
+
 rss_entry = {ELEMENTS:[], PASS_ID: pass_id, CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify}
 
 for old_element in oldJson['features']:
