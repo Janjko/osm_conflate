@@ -195,7 +195,7 @@ if len(rss_entry[ELEMENTS]) > 0:
         fe = fg.add_entry()
         fe.title(options.title)
         fe.id(entry[PASS_ID])
-        fe.published(entry[NEW_DATE])
+        fe.updated(entry[NEW_DATE])
         try:
             missing_elements='Nedostaje '+str(entry[CREATE_ELEMENTS])+' elemenata, i treba ih popraviti '+str(entry[MODIFY_ELEMENTS])+'.'
         except KeyError:
