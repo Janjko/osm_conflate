@@ -37,6 +37,8 @@ PASS_ID = 'pass_id'
 ELEMENTS = 'elements'
 CREATE_ELEMENTS = 'create_elements'
 MODIFY_ELEMENTS = 'modify_elements'
+NEW_DATE = 'new_date'
+OLD_DATE = 'old_date'
 
 OSM_URL='https://openstreetmap.org/'
 
@@ -98,7 +100,8 @@ with open (options.inspected, encoding='utf-8') as old_json_file:
         os.remove(options.inspected)
         sys.exit()
 
-pass_id = newJson['osm_base']
+newDate = newJson['osm_base']
+oldDate = oldJson['osm_base']
 
 # Brojalica za ukupni broj nedostajućih
 elements_to_create=0
@@ -118,7 +121,7 @@ for new_element in newJson['features']:
     if 'ref_id' not in new_element['properties']:
         logging.error('Novi element https://openstreetmap.org/' + new_element['properties']['osm_type'] + '/' + str(new_element['properties']['osm_id']) + ' nema ref.')
 
-rss_entry = {ELEMENTS:[], PASS_ID: pass_id, CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify}
+rss_entry = {ELEMENTS:[], PASS_ID: oldDate + '-->' + newDate, CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify, NEW_DATE:newDate, OLD_DATE:oldDate}
 
 for old_element in oldJson['features']:
     new_matches = list(filter(lambda new_match: (
@@ -192,6 +195,7 @@ if len(rss_entry[ELEMENTS]) > 0:
         fe = fg.add_entry()
         fe.title(options.title)
         fe.id(entry[PASS_ID])
+        fe.published(entry[NEW_DATE])
         try:
             missing_elements='Nedostaje '+str(entry[CREATE_ELEMENTS])+' elemenata, i treba ih popraviti '+str(entry[MODIFY_ELEMENTS])+'.'
         except KeyError:
@@ -214,5 +218,5 @@ if len(rss_entry[ELEMENTS]) > 0:
 
     fg.rss_file(options.rss)
 
-os.rename( options.inspected, os.path.join( options.past,'inspected_'+pass_id.replace(':','')+'.json' ) )
+os.rename( options.inspected, os.path.join( options.past,'inspected_'+newDate.replace(':','')+'.json' ) )
 os.rename( options.new, options.inspected )
