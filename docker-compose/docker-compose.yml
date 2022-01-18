@@ -28,9 +28,7 @@ services:
         image: nginx
         volumes:
             - ~/garden/rss/:/usr/share/nginx/html/rss/
-            - ~/garden/jsons/history/:/usr/share/nginx/html/history/
-            - ~/garden/jsons/inspected/:/usr/share/nginx/html/inspected/
-            - ~/garden/jsons/current/:/usr/share/nginx/html/current/
+            - ~/garden/jsons/:/usr/share/nginx/html/jsons/
         ports:
           - "8080:80"
 
