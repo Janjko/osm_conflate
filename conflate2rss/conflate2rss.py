@@ -61,17 +61,6 @@ parser.add_argument('-t', '--title', help='Title of the RSS entries')
 
 options = parser.parse_args()
 
-fg = FeedGenerator()
-fg.id(options.rssurl)
-fg.title('Garden feed')
-fg.author({'name': options.rssauthor})
-fg.subtitle('A feed of changes on the OpenStreetMap database')
-fg.link(href=options.rssurl, rel='self')
-if not options.rsslanguage:
-    fg.language('en')
-else:
-    fg.language(options.rsslanguage)
-
 if not os.path.isfile(options.inspected):
     if os.path.isfile(options.new):
         copyfile( options.new, options.inspected )
@@ -190,6 +179,19 @@ if len(rss_entry[ELEMENTS]) > 0:
     with open(options.raw, 'w+') as fp:
         json.dump(rss_raw, fp)
 
+    
+    fg = FeedGenerator()
+    fg.id(options.rssurl)
+    fg.title('Garden feed')
+    fg.author({'name': options.rssauthor})
+    fg.subtitle('A feed of changes on the OpenStreetMap database')
+    fg.link(href=options.rssurl, rel='self')
+    fg.updated(newDate)
+    fg.generator('OSM Garden')
+    if not options.rsslanguage:
+        fg.language('en')
+    else:
+        fg.language(options.rsslanguage)
 
     for entry in rss_raw[-int(options.number_of_entries):]:
         fe = fg.add_entry()
