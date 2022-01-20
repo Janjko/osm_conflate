@@ -186,8 +186,8 @@ if len(rss_entry[ELEMENTS]) > 0:
     fg.author({'name': options.rssauthor})
     fg.subtitle('A feed of changes on the OpenStreetMap database')
     fg.link(href=options.rssurl, rel='self')
-    fg.updated(newDate)
     fg.generator('OSM Garden')
+    fg.lastBuildDate(newDate)
     if not options.rsslanguage:
         fg.language('en')
     else:
@@ -197,7 +197,7 @@ if len(rss_entry[ELEMENTS]) > 0:
         fe = fg.add_entry()
         fe.title(options.title)
         fe.id(entry[PASS_ID])
-        fe.updated(entry[NEW_DATE])
+        fe.published(entry[NEW_DATE])
         try:
             missing_elements='Nedostaje '+str(entry[CREATE_ELEMENTS])+' elemenata, i treba ih popraviti '+str(entry[MODIFY_ELEMENTS])+'.'
         except KeyError:
