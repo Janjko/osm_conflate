@@ -218,7 +218,7 @@ if len(rss_entry[ELEMENTS]) > 0:
             description.append(missing_elements)
         fe.description(' '.join(description))
 
-    fg.rss_file(options.rss)
+    fg.atom_file(options.rss)
 
 os.rename( options.inspected, os.path.join( options.past,'inspected_'+newDate.replace(':','')+'.json' ) )
 os.rename( options.new, options.inspected )
