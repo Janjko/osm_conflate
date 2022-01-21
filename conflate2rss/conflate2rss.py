@@ -12,6 +12,7 @@ from jsondiff import diff
 from feedgen.feed import FeedGenerator
 from enum import Enum
 import logging
+from pathlib import Path
 
 logging.basicConfig(level=logging.NOTSET)
 
@@ -162,7 +163,7 @@ for new_element in newJson['features']: #Ako u starom setu podataka nije bilo ov
 
 print (str(len(rss_entry[ELEMENTS]))+' promjena nađeno.')
 
-if len(rss_entry[ELEMENTS]) > 0:
+if len(rss_entry[ELEMENTS]) > 0 or not Path(options.rss).is_file():
 
 # Dictionary that holds the raw rss data, from which the rss is created
     rss_raw = []
