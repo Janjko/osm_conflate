@@ -175,10 +175,11 @@ if len(rss_entry[ELEMENTS]) > 0 or not Path(options.rss).is_file():
         with open(options.raw, 'w+') as json_file:
             json.dump(rss_raw, json_file)
 
-    rss_raw.append(rss_entry)
+    if len(rss_entry[ELEMENTS]) > 0:
+        rss_raw.append(rss_entry)
 
-    with open(options.raw, 'w+') as fp:
-        json.dump(rss_raw, fp)
+        with open(options.raw, 'w+') as fp:
+            json.dump(rss_raw, fp)
 
     
     fg = FeedGenerator()
