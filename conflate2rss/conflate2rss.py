@@ -13,6 +13,7 @@ from feedgen.feed import FeedGenerator
 from enum import Enum
 import logging
 from pathlib import Path
+import gettext
 
 logging.basicConfig(level=logging.NOTSET)
 
@@ -59,8 +60,13 @@ parser.add_argument('-a', '--rssauthor', help='Author of rss')
 parser.add_argument('-l', '--rsslanguage', help='ISO language code of rss (en)')
 parser.add_argument('-m', '--number_of_entries', help='Max number of RSS entries')
 parser.add_argument('-t', '--title', help='Title of the RSS entries')
+parser.add_argument('-d', '--localedir', help='Locale directory')
 
 options = parser.parse_args()
+
+hr = gettext.translation(domain='messages', localedir=options.localedir, languages=['en'])
+hr.install()
+_ = hr.gettext
 
 if not os.path.isfile(options.inspected):
     if os.path.isfile(options.new):
@@ -111,55 +117,87 @@ for new_element in newJson['features']:
     if 'ref_id' not in new_element['properties']:
         logging.error('Novi element https://openstreetmap.org/' + new_element['properties']['osm_type'] + '/' + str(new_element['properties']['osm_id']) + ' nema ref.')
 
-rss_entry = {ELEMENTS:[], PASS_ID: oldDate + '-->' + newDate, CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify, NEW_DATE:newDate, OLD_DATE:oldDate}
+rss_entry = {ELEMENTS:[], PASS_ID: oldDate + '--' + newDate, CREATE_ELEMENTS:elements_to_create, MODIFY_ELEMENTS:elements_to_modify, NEW_DATE:newDate, OLD_DATE:oldDate}
 
 for old_element in oldJson['features']:
+    old_tags = {}
+    new_tags = {}
+    for key, value in old_element['properties'].items():
+        if str(key).startswith('tags.'):
+            old_tags[key] = value
+    new_entry = {ELEMENT_REF: old_element['properties']['ref_id']}
     new_matches = list(filter(lambda new_match: (
         new_match['properties']['ref_id'] == old_element['properties']['ref_id']), newJson['features']))
     if len(new_matches) == 0: #Ako u novom setu podataka više nema ovog upisa
+        new_entry.update(old_tags)
         if old_element['properties']['action'] == 'create':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.CREATE_NONE,
-                                ELEMENT_REF: old_element['properties']['ref_id']})
+            new_entry[CHANGE_STATUS] = change_status.CREATE_NONE
+            rss_entry[ELEMENTS].append(new_entry)
         if old_element['properties']['action'] == 'modify':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.MODIFY_NONE,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id'], OSM_TYPE: old_element['properties']['osm_type']})
+            new_entry[CHANGE_STATUS] = change_status.MODIFY_NONE
+            new_entry[OSM_ID] = old_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = old_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
         if old_element['properties']['action'] == 'delete':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.DELETE_NONE,
-                                OSM_ID: old_element['properties']['osm_id'], OSM_TYPE: old_element['properties']['osm_type']})
-
+            new_entry[CHANGE_STATUS] = change_status.DELETE_NONE
+            new_entry[OSM_ID] = old_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = old_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
     for new_matched_element in new_matches:
+        for key, value in new_matched_element['properties'].items():
+            if str(key).startswith('tags.'):
+                new_tags[key] = value
+        new_entry.update(new_tags)
         if old_element['properties']['action'] == 'create' and new_matched_element['properties']['action'] == 'modify':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.CREATE_MODIFY,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id'], OSM_TYPE: new_matched_element['properties']['osm_type']})
-
+            new_entry[CHANGE_STATUS] = change_status.CREATE_MODIFY
+            new_entry[OSM_ID] = new_matched_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = new_matched_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
         if old_element['properties']['action'] == 'modify' and new_matched_element['properties']['action'] == 'create':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.MODIFY_CREATE,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id'], OSM_TYPE: old_element['properties']['osm_type']})
-
+            new_entry[CHANGE_STATUS] = change_status.MODIFY_CREATE
+            new_entry[OSM_ID] = old_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = old_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
         if old_element['properties']['action'] == 'create' and new_matched_element['properties']['action'] is None:
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.CREATE_CREATED,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id'], OSM_TYPE: new_matched_element['properties']['osm_type']})
-
+            new_entry[CHANGE_STATUS] = change_status.CREATE_CREATED
+            new_entry[OSM_ID] = new_matched_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = new_matched_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
         if old_element['properties']['action'] == 'modify' and new_matched_element['properties']['action'] is None:
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.MODIFY_CREATED,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id'], OSM_TYPE: new_matched_element['properties']['osm_type']})
-
+            new_entry[CHANGE_STATUS] = change_status.MODIFY_CREATED
+            new_entry[OSM_ID] = new_matched_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = new_matched_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
         if old_element['properties']['action'] is None and new_matched_element['properties']['action'] == 'create':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.CREATED_CREATE,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: old_element['properties']['osm_id'], OSM_TYPE: old_element['properties']['osm_type']})
-
+            new_entry[CHANGE_STATUS] = change_status.CREATED_CREATE
+            new_entry[OSM_ID] = old_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = old_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
         if old_element['properties']['action'] is None and new_matched_element['properties']['action'] == 'modify':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.CREATED_MODIFY,
-                                ELEMENT_REF: old_element['properties']['ref_id'], OSM_ID: new_matched_element['properties']['osm_id'], OSM_TYPE: new_matched_element['properties']['osm_type']})
+            new_entry[CHANGE_STATUS] = change_status.CREATED_MODIFY
+            new_entry[OSM_ID] = new_matched_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = new_matched_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
 
 for new_element in newJson['features']: #Ako u starom setu podataka nije bilo ovog upisa
+    new_tags = {}
+    for key, value in new_element['properties'].items():
+        if str(key).startswith('tags.'):
+            new_tags[key] = value
+    new_entry = {ELEMENT_REF: new_element['properties']['ref_id']}
+    new_entry.update(new_tags)
+    for key, value in new_matched_element['properties'].items():
+        if str(key).startswith('tags.'):
+            new_tags[key] = value
     if not any(x['properties']['ref_id'] == new_element['properties']['ref_id'] for x in oldJson['features']):
         if new_element['properties']['action'] == 'create':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.NONE_CREATE,
-                           ELEMENT_REF: new_element['properties']['ref_id']})
+            new_entry[CHANGE_STATUS] = change_status.NONE_CREATE
+            rss_entry[ELEMENTS].append(new_entry)
         if new_element['properties']['action'] == 'modify':
-            rss_entry[ELEMENTS].append({CHANGE_STATUS: change_status.NONE_MODIFY,
-                           ELEMENT_REF: new_element['properties']['ref_id'], OSM_ID: new_element['properties']['osm_id'], OSM_TYPE: new_element['properties']['osm_type']})
+            new_entry[CHANGE_STATUS] = change_status.NONE_MODIFY
+            new_entry[OSM_ID] = new_element['properties']['osm_id']
+            new_entry[OSM_TYPE] = new_element['properties']['osm_type']
+            rss_entry[ELEMENTS].append(new_entry)
 
 print (str(len(rss_entry[ELEMENTS]))+' promjena nađeno.')
 
@@ -201,22 +239,22 @@ if len(rss_entry[ELEMENTS]) > 0 or not Path(options.rss).is_file():
         fe.id(entry[PASS_ID])
         fe.published(entry[NEW_DATE])
         try:
-            missing_elements='Nedostaje '+str(entry[CREATE_ELEMENTS])+' elemenata, i treba ih popraviti '+str(entry[MODIFY_ELEMENTS])+'.'
+            missing_elements=_('{ENTRY[create_elements]} elements missing, and {ENTRY[modify_elements]} to fix.').format(ENTRY=entry)
         except KeyError:
             missing_elements=''
         description = []
         for element in entry[ELEMENTS]:
-            link_string = '<a href="' + OSM_URL + element[OSM_TYPE] + '/' + str(element[OSM_ID])+ '">' + element[ELEMENT_REF] + '</a>'
+            osm_link = OSM_URL + element[OSM_TYPE] + '/' + str(element[OSM_ID])
             if element[CHANGE_STATUS] in [change_status.CREATE_CREATED, change_status.MODIFY_CREATED]:
-                description.append('Element ' + link_string +' ispravno ucrtan.')
+                description.append(_('Element {ELEMENT[element_ref]} mapped correctly.').format(OSM_LINK=osm_link, ELEMENT=element))
             if element[CHANGE_STATUS] in [change_status.CREATED_CREATE, change_status.MODIFY_CREATE]:
-                description.append('Element ' + link_string + ' obrisan, ili je izgubio osnovne tagove.')
+                description.append(_('Element {ELEMENT[element_ref]} deleted, or lost basic tags.').format(OSM_LINK=osm_link, ELEMENT=element))
             if element[CHANGE_STATUS] == change_status.CREATED_MODIFY:
-                description.append('Elementu ' + link_string + ' pokvareni tagovi.')
+                description.append(_('Element {ELEMENT[element_ref]} now has bad tags.').format(OSM_LINK=osm_link, ELEMENT=element))
             if element[CHANGE_STATUS] in [change_status.CREATE_MODIFY, change_status.NONE_MODIFY]:
-                description.append('Element ' + link_string + ' ucrtan, ali sa lošim tagovima.')
+                description.append(_('Element {ELEMENT[element_ref]} mapped with bad tags.').format(OSM_LINK=osm_link, ELEMENT=element))
             if element[CHANGE_STATUS] == change_status.NONE_CREATE:
-                description.append('Element ' + link_string + ' dodan u ulazni dataset.')
+                description.append(_('Element {ELEMENT[element_ref]} added to input dataset.').format(OSM_LINK=osm_link, ELEMENT=element))
             description.append(missing_elements)
         fe.description(' '.join(description))
 
