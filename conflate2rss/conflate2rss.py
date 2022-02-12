@@ -255,7 +255,7 @@ if len(rss_entry[ELEMENTS]) > 0 or not Path(options.rss).is_file():
                 description.append(_('Element {ELEMENT[element_ref]} mapped with bad tags.').format(OSM_LINK=osm_link, ELEMENT=element))
             if element[CHANGE_STATUS] == change_status.NONE_CREATE:
                 description.append(_('Element {ELEMENT[element_ref]} added to input dataset.').format(OSM_LINK=osm_link, ELEMENT=element))
-            description.append(missing_elements)
+        description.append(missing_elements)
         fe.description(' '.join(description))
 
     fg.atom_file(options.rss)
