@@ -244,17 +244,16 @@ if len(rss_entry[ELEMENTS]) > 0 or not Path(options.rss).is_file():
             missing_elements=''
         description = []
         for element in entry[ELEMENTS]:
-            osm_link = OSM_URL + element[OSM_TYPE] + '/' + str(element[OSM_ID])
             if element[CHANGE_STATUS] in [change_status.CREATE_CREATED, change_status.MODIFY_CREATED]:
-                description.append(_('Element {ELEMENT[element_ref]} mapped correctly.').format(OSM_LINK=osm_link, ELEMENT=element))
+                description.append(_('Element {ELEMENT[element_ref]} mapped correctly.').format(ELEMENT=element))
             if element[CHANGE_STATUS] in [change_status.CREATED_CREATE, change_status.MODIFY_CREATE]:
-                description.append(_('Element {ELEMENT[element_ref]} deleted, or lost basic tags.').format(OSM_LINK=osm_link, ELEMENT=element))
+                description.append(_('Element {ELEMENT[element_ref]} deleted, or lost basic tags.').format(ELEMENT=element))
             if element[CHANGE_STATUS] == change_status.CREATED_MODIFY:
-                description.append(_('Element {ELEMENT[element_ref]} now has bad tags.').format(OSM_LINK=osm_link, ELEMENT=element))
+                description.append(_('Element {ELEMENT[element_ref]} now has bad tags.').format(ELEMENT=element))
             if element[CHANGE_STATUS] in [change_status.CREATE_MODIFY, change_status.NONE_MODIFY]:
-                description.append(_('Element {ELEMENT[element_ref]} mapped with bad tags.').format(OSM_LINK=osm_link, ELEMENT=element))
+                description.append(_('Element {ELEMENT[element_ref]} mapped with bad tags.').format(ELEMENT=element))
             if element[CHANGE_STATUS] == change_status.NONE_CREATE:
-                description.append(_('Element {ELEMENT[element_ref]} added to input dataset.').format(OSM_LINK=osm_link, ELEMENT=element))
+                description.append(_('Element {ELEMENT[element_ref]} added to input dataset.').format(ELEMENT=element))
         description.append(missing_elements)
         fe.description(' '.join(description))
 
