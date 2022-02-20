@@ -5,11 +5,11 @@ services:
         build: ..
         image: conflator
         volumes:
-            - ~/garden/conflate/:/data/
             - ~/garden/jsons/:/jsons/
             - ~/garden/rss/:/rss/
         environment:
             - PERIOD=1h
+            - GIT_PROFILES=https://github.com/Janjko/garden_croatia
 #        depends_on:
 #            - "overpass"
 #    overpass:

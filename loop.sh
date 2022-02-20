@@ -13,6 +13,8 @@ function sigterm() {
 trap 'sigint' INT
 trap 'sigterm' TERM
 
+git clone ${GIT_PROFILES} /data
+
 for i in /data/*.po; do
   echo $i
   j="${i%%.*}"
